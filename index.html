@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalable=no, viewport-fit=cover">
+    <title>米兰真核 荣耀礼盒 V2.1</title>
+    <style>
+        html, body {
+            touch-action: manipulation;
+        }
+        
+        @media (hover: none) {
+            * {
+                -webkit-tap-highlight-color: transparent;
+                -webkit-touch-callout: none;
+            }
+        }
+
+        :root {
+            --gold: #FFD700;
+            --orange: #FFA500;
+        }
+
+        body {
+            position: relative;
+            color: white;
+            font-family: '微软雅黑', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #0a0a0a url('https://ftp.mioz.cn/test/2025/04/04/1743709069.JPG') no-repeat center/cover fixed;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: linear-gradient(45deg, rgba(255,215,0,0.1), rgba(0,0,0,0.3));
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid var(--gold);
+            box-shadow: 0 0 30px rgba(255,215,0,0.2);
+            position: relative;
+        }
+
+        .draw-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, var(--gold), var(--orange));
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            color: #1a1a1a;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+        }
+
+        .collapse-button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--gold);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+
+        .collapse-button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .collapsed {
+            display: none;
+        }
+
+        .rewards-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .shop-item {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            width: 220px;
+            vertical-align: top;
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .player-image {
+            width: 50%;
+            max-width: 100px;
+            height: auto;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 15px rgba(255,215,0,0.3);
+            transition: transform 0.3s;
+        }
+
+        .shop-item button {
+            background: linear-gradient(45deg, var(--gold), var(--orange));
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: #1a1a1a;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .reward-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .open-button {
+            background: linear-gradient(45deg, #00FF88, #00CC66);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #1a1a1a;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reward-badge {
+            font-size: 0.8em;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .shop-item {
+                width: 100%;
+                margin: 10px 0;
+            }
+            
+            .draw-button {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                width: 100%;
+                margin-top: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .status-bar {
+                grid-template-columns: 1fr;
+            }
+            
+            .draw-button {
+                padding: 12px 24px;
+                font-size: 14px;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <div class="container">
+        <div class="header">
+            <h1>🌌 米兰真核 荣耀礼盒 🎁</h1>
+            <div class="status-bar">
+                <div>🎰 抽取次数：<span id="drawCount">0</span></div>
+                <div>⭐ 荣耀值：<span id="honorValue">0</span>/300</div>
+                <div>🎁 已获奖励：<span id="rewardsCounter">0</span> 个</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div id="result"></div>
+            <button class="draw-button" onclick="draw()" id="drawButton">
+                ✨ 消耗1000金币抽卡 ✨
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>🛒 兑换商店</h2>
+            <div class="shop-item">
+                <img src="https://ftp.mioz.cn/test/2025/04/04/1743708758.PNG" 
+                     class="player-image">
+                <h3>卡卡</h3>
+                <button onclick="exchange(36)">36 ⭐ 兑换</button>
+            </div>
+            <div class="shop-item">
+                <img src="https://ftp.mioz.cn/test/2025/04/04/1743708987.PNG" 
+                     class="player-image">
+                <h3>舍甫琴科</h3>
+                <button onclick="exchange(36)">36 ⭐ 兑换</button>
+            </div>
+
+            <div class="shop-item">
+                <img src="https://ftp.mioz.cn/test/2025/04/04/1743766323.PNG" 
+                     class="player-image">
+                <h3>双人组合包</h3>
+                <button onclick="exchange(63)">63 ⭐ 兑换</button>
+        </div>
+
+        <div class="card">
+            <h2>🎁 累计奖励</h2>
+            <div class="rewards-container" id="rewardsContainer"></div>
+            <button class="collapse-button" id="collapseButton" onclick="toggleCollapse()">展开更多奖励</button>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            drawCount: 0,
+            honor: 0,
+            gold: 1000000,
+            claimedRewards: [],
+            rewardCycles: {},
+            lastRewardCycle: -1
+        };
+
+        const rewardSystem = {
+            cycleLength: 25,
+            rewards: [
+                {
+                    step: 5,
+                    name: '荣耀高光礼盒第一弹',
+                    players: ['史诗赫内斯','史诗古蒂','史诗野猪戴维斯','史诗切赫','单增能兰帕德','双增能巴蒂','双增能科斯塔','双增能亚当斯']
+                },
+                {
+                    step: 10,
+                    name: '荣耀高光礼盒第二弹',
+                    players: ['史诗德罗巴','史诗里杰卡尔德','双增能安布罗西尼','史诗西多夫','单增能范德法特','单增能佩蒂特','双增能托雷斯','双增能巴乔']
+                },
+                {
+                    step: 15,
+                    name: '荣耀高光礼盒第三弹',
+                    players: ['史诗克鲁伊夫','史诗菲戈','单增能丹尼斯劳','单增能约克','史诗西曼','双增能克尔基奇','双增能中田英寿','双增能迪达']
+                },
+                {
+                    step: 20,
+                    name: '传奇五星经纪人',
+                    players: [
+                        '克鲁伊夫', '伊涅斯塔', '卡西利亚斯', '小罗', '内斯塔',
+                        '鲁梅尼格', '范巴斯滕', '维埃拉', '罗马里奥', '济科', '皮耶罗', '马克莱莱', '博格坎普', '德罗巴', '卡纳瓦罗',
+                        '托蒂', '兰帕德', '里杰卡尔德', '巴蒂', '卡卡', '卡恩',
+                        '马尔蒂尼', '内德维德', '舒梅切尔', '里瓦尔多', '古利特',
+                        '范尼斯特鲁', '埃托奥', '杰拉德', '皮尔洛', '西多夫',
+                        '贝克汉姆', '劳', '迪达', '野猪戴维斯', '斯托伊奇科夫',
+                        '马特乌斯', '菲戈', '斯科尔斯', '劳尔', '卡洛斯', '斯内德',
+                        '哈维', '费雷尔', '罗布森', '卡福', '西曼', '比利亚',
+                        '埃尔文', '莫伦特斯', '托雷斯', '古蒂', '奥根塔勒', '欧文',
+                        '克鲁伊维特', '塞尔吉奥', '瓜迪奥拉', '切赫', '赫内斯',
+                        '拜亚', '阿隆索'
+                    ],
+                },
+                {
+                    step: 25,
+                    name: '荣耀传奇礼盒',
+                    players: ['黄传克鲁伊夫','黄传卡纳瓦罗','黄传兰帕德','黄传里杰卡尔德','黄传劳尔','黄传弗兰','黄传埃德米尔森']
+                }
+            ],
+
+            getCurrentRewards(drawCount) {
+                const currentCycle = Math.floor((drawCount - 1) / this.cycleLength); // 修复周期计算
+                const currentStep = drawCount % this.cycleLength || this.cycleLength; // 修复步骤计算
+                
+                return this.rewards.filter(reward => {
+                    return currentStep >= reward.step && 
+                         !this.isClaimed(reward.name, currentCycle);
+                });
+            },
+
+            isClaimed(rewardName, cycle) {
+                return state.rewardCycles[`${rewardName}_${cycle}`] === true;
+            },
+
+            markAsClaimed(rewardName, cycle) {
+                state.rewardCycles[`${rewardName}_${cycle}`] = true;
+            }
+        };
+
+        function draw() {
+            if (state.gold < 1000) {
+                alert('金币不足！');
+                return;
+            }
+
+            state.gold -= 1000;
+            const currentDrawCount = ++state.drawCount;
+
+            const baseProb = probabilityConfig.getCurrentProb(currentDrawCount);
+            const rate = rateCalculator.getRate(currentDrawCount);
+            const actualProb = (baseProb * rate) / 100;
+
+            const isHonor = Math.random() * 100 < actualProb;
+            if (isHonor) state.honor += 1;
+
+            const currentRewards = rewardSystem.getCurrentRewards(state.drawCount); // 注意使用修正后的drawCount
+            currentRewards.forEach(reward => {
+                const currentCycle = Math.floor((state.drawCount - 1) / rewardSystem.cycleLength); // 同步周期计算
+                rewardSystem.markAsClaimed(reward.name, currentCycle);
+                
+                const rewardEntry = {
+                    id: Date.now() + Math.random(),
+                    name: reward.name,
+                    players: reward.players,
+                    cycle: currentCycle,
+                    claimTime: new Date().toLocaleString(),
+                    opened: false
+                };
+
+                state.claimedRewards.push(rewardEntry);
+                showRewardNotification(rewardEntry);
+            });
+
+            updateUI(isHonor ? '🎉 荣耀降临！获得1点荣耀值' : `🏆 获得球员：${getRandomPlayer()}`, 
+                   isHonor ? '#FFD700' : '#00FF88');
+        }
+
+        function exchange(cost) {
+            if (state.honor >= cost) {
+                state.honor -= cost;
+                alert('兑换成功！');
+                updateUI();
+            } else {
+                alert('荣耀值不足！');
+            }
+        }
+
+        function openReward(rewardId) {
+            const reward = state.claimedRewards.find(r => r.id === rewardId);
+            if (!reward || reward.opened) return;
+
+            const player = reward.players[Math.floor(Math.random() * reward.players.length)];
+            alert(`🎉 开启成功！获得球员：${player}`);
+            
+            reward.opened = true;
+            updateUI();
+        }
+
+        function updateUI(message, color) {
+            document.getElementById('drawCount').textContent = state.drawCount;
+            document.getElementById('honorValue').textContent = state.honor;
+            document.getElementById('rewardsCounter').textContent = state.claimedRewards.length;
+
+            if (message) showResult(message, color);
+            updateRewardsDisplay();
+            document.getElementById('drawButton').disabled = state.gold < 1000;
+        }
+
+        function updateRewardsDisplay() {
+            const container = document.getElementById('rewardsContainer');
+            container.innerHTML = state.claimedRewards.map(reward => `
+                <div class="reward-item">
+                    <h3>${reward.name} 
+                      
+                    </h3>
+                  
+                    ${reward.opened ? 
+                        '<p>🎁 已开启</p>' : 
+                        `<button class="open-button" onclick="openReward(${reward.id})">
+                            ✨ 打开礼包 ✨
+                        </button>`
+                    }
+                </div>
+            `).join('');
+
+            const collapseButton = document.getElementById('collapseButton');
+            collapseButton.style.display = state.claimedRewards.length > 2 ? 'block' : 'none';
+        }
+
+        const probabilityConfig = {
+            phases: [
+                { start: 0,  prob: 3   },
+                { start: 5,  prob: 3.75},
+                { start: 10, prob: 4.5 },  
+                { start: 15, prob: 5.25},
+                { start: 20, prob: 5.88},
+                { start: 25, prob: 6   }
+            ],
+            getCurrentProb(count) {
+                const phase = this.phases.slice().reverse().find(p => count >= p.start);
+                return phase ? phase.prob : 0;
+            }
+        };
+
+        const rateCalculator = {
+            getRate(count) {
+                if (count <= 5) return 100 + (count - 1) * 100;
+                return Math.min(475 + (count - 5) * 25, 1000);
+            }
+        }; 
+
+        function showResult(message, color) {
+            const currentStep = state.drawCount % rewardSystem.cycleLength || rewardSystem.cycleLength;
+            document.getElementById('result').innerHTML = `
+                <div class="result-card" style="border-color: ${color}">
+                    <h3 style="color: ${color}">${message}</h3>
+                  
+                    <small>当前概率：${probabilityConfig.getCurrentProb(state.drawCount)}%</small> <br>
+                    <small>当前倍率：${rateCalculator.getRate(state.drawCount)}%</small>
+                </div>`;
+        }
+
+        function showRewardNotification(rewardEntry) {
+            const notification = document.createElement('div');
+            notification.className = 'result-card';
+            notification.innerHTML = `
+                <h3 style="color: #00FF88">🎁 获得累计奖励：${rewardEntry.name}</h3>
+            `;
+            document.getElementById('result').prepend(notification);
+        }
+
+        function getRandomPlayer() {
+            const players = ['孙兴慜', '哈里·凯恩', '德布劳内', '萨拉赫', '范戴克',
+                '布鲁诺·费尔南德斯', '坎特', '斯特林', '阿诺德', '马内',
+                '拉什福德', '桑乔', '福登', '格拉利什', '詹姆斯',
+                '蒂亚戈', '若日尼奥', '芒特', '卢卡库', '齐耶赫',
+                '吕迪格', '阿斯皮利奎塔', '热苏斯', '津琴科', '洛里',
+                '凯尔·沃克', '马赫雷斯', '京多安', '罗德里', '埃德森', '迪亚斯', '贝尔纳多·席尔瓦', '菲尔·福登', '卡塞米罗', '瓦拉内',            
+                '桑切斯', '厄德高', '萨卡', '奥巴梅扬', '拉卡泽特',
+                '托马斯·帕尔特伊', '本·怀特', '蒂尔尼', '史密斯·罗', '洛孔加',
+                '富安健洋', '马丁内利', '恩凯蒂亚', '拉姆斯代尔', '霍尔丁',
+                '本泽马', '莫德里奇', '维尼修斯', '库尔图瓦', '阿拉巴',
+                '克罗斯', '巴尔韦德', '罗德里戈', '阿森西奥', '卡马文加',
+                '米利唐', '吕迪格', '纳乔', '卡瓦哈尔', '巴斯克斯',
+                '梅西', '莱万多夫斯基', '佩德里', '加维', '德容',
+                '特尔施特根', '阿劳霍', '克里斯滕森', '孔德', '登贝莱',
+                '费兰·托雷斯', '拉菲尼亚', '凯西', '布斯克茨', '阿尔巴',
+                '格里兹曼', '莫拉塔', '科克', '萨乌尔', '略伦特',
+                '奥布拉克', '希门尼斯', '勒马尔', '卡拉斯科', '德保罗',
+                '费利克斯', '格列兹曼', '苏亚雷斯', '卡瓦尼', '皮克',
+                '阿尔维斯', '普伊格', '尼科', '加西亚', '法蒂',
+                '穆勒', '基米希', '诺伊尔', '萨内', '格纳布里',
+                '戴维斯', '卢卡斯·埃尔南德斯', '帕瓦尔', '格雷茨卡', '马内',
+                '德里赫特', '坎塞洛', '科曼', '索默', '于帕梅卡诺',
+                '哈兰德', '贝林厄姆', '罗伊斯', '布兰特', '阿坎吉',
+                '胡梅尔斯', '穆科科', '雷纳', '施洛特贝克', '聚勒',
+                '维尔茨', '迪亚比', '塔普索巴', '弗林蓬', '赫洛热克',
+                '恩昆库', '奥尔莫', '维尔纳', '劳姆', '克洛斯特曼',
+                '莱默尔', '西马坎', '亨里希斯', '波尔森', '福斯贝里',
+                '索博斯洛伊', '格瓦迪奥尔', '莱比锡', '恩梅查', '阿德耶米',
+                '马伦', '施洛特贝克', '沃尔夫', '雷纳', '贝克尔',
+                '莱奥', '吉鲁', '特奥', '托纳利', '迈尼昂',
+                '迪亚斯', '卡拉布里亚', '克亚尔', '本纳赛尔', '萨勒马克尔斯',
+                '劳塔罗', '巴雷拉', '什克里尼亚尔', '巴斯托尼', '恰尔汗奥卢',
+                '卢卡库', '哲科', '邓邓弗里斯', '德弗里', '布罗佐维奇',
+                '奥斯梅恩', '克瓦拉茨赫利亚', '金玟哉', '洛博特卡', '安古伊萨',
+                '迪洛伦佐', '鲁伊', '梅雷特', '波利塔诺', '泽林斯基',
+                '弗拉霍维奇', '基耶萨', '博格巴', '达尼洛', '布雷默',
+                '迪马利亚', '帕雷德斯', '科斯蒂奇', '米利克', '洛卡特利',
+                '因莫比莱', '阿尔贝托', '米林科维奇', '安德森', '扎卡尼',
+                '罗马尼奥利', '托莫里', '卡卢卢', '克鲁尼奇', '雷比奇',
+                '姆巴佩', '内马尔', '梅西', '多纳鲁马', '拉莫斯',
+                '马尔基尼奥斯', '维拉蒂', '阿什拉夫', '门德斯', '金彭贝',
+                '埃基蒂克', '桑谢斯', '鲁伊斯', '索莱尔', '穆基勒',
+                '大卫', '乔纳森·戴维', '丰特', '热尔松', '安德烈·戈麦斯',
+                '卡贝拉', '班巴', '奥纳斯', '尼古拉斯·佩佩', '迪亚基特',
+                '福法纳', '古斯托', '拉卡泽特', '托利索', '帕奎塔',
+                '登贝莱', '巴尔科拉', '切尔基', '奥亚尔', '帕瓦尔',
+                '泰里耶', '萨瓦尼耶', '马维迪迪', '埃梅加', '瓦希',
+                '卡马拉', '克劳斯', '桑通兹', '阿塔尔', '布巴卡尔·卡马拉',
+                '云代尔', '帕耶', '贡多齐', '路易斯·苏亚雷斯', '巴洛贡'];
+            return players[Math.floor(Math.random() * players.length)];
+        }
+
+        let isCollapsed = true;
+        function toggleCollapse() {
+            const container = document.getElementById('rewardsContainer');
+            container.classList.toggle('collapsed');
+            document.getElementById('collapseButton').textContent = 
+                container.classList.contains('collapsed') ? '展开更多奖励' : '收起奖励';
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
