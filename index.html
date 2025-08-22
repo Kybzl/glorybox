@@ -635,12 +635,30 @@
             state.gold -= 1000;
             const currentDrawCount = ++state.drawCount;
 
-            const baseProb = probabilityConfig.getCurrentProb(currentDrawCount);
-            const rate = rateCalculator.getRate(currentDrawCount);
-            const actualProb = (baseProb * rate) / 100;
+            // 修改：在第70抽后，每次抽取必得1点荣耀值
+            let isHonor = false;
+            let message = `🏆 获得球员：${getRandomPlayer()}`;
+            let color = '#00FF88';
+            
+            if (currentDrawCount > 70) {
+                // 第70抽后必得1点荣耀值
+                state.honor += 1;
+                isHonor = true;
+                message = '🎉 荣耀降临！获得1点荣耀值';
+                color = '#FFD700';
+            } else {
+                // 第70抽前按原概率计算
+                const baseProb = probabilityConfig.getCurrentProb(currentDrawCount);
+                const rate = rateCalculator.getRate(currentDrawCount);
+                const actualProb = (baseProb * rate) / 100;
 
-            const isHonor = Math.random() * 100 < actualProb;
-            if (isHonor) state.honor += 1;
+                isHonor = Math.random() * 100 < actualProb;
+                if (isHonor) {
+                    state.honor += 1;
+                    message = '🎉 荣耀降临！获得1点荣耀值';
+                    color = '#FFD700';
+                }
+            }
 
             const currentRewards = rewardSystem.getCurrentRewards(state.drawCount);
             currentRewards.forEach(reward => {
@@ -660,8 +678,7 @@
                 showRewardNotification(rewardEntry);
             });
 
-            updateUI(isHonor ? '🎉 荣耀降临！获得1点荣耀值' : `🏆 获得球员：${getRandomPlayer()}`, 
-                   isHonor ? '#FFD700' : '#00FF88');
+            updateUI(message, color);
         }
 
         // 修改兑换函数，添加历史记录
